@@ -1,0 +1,11 @@
+name = tracelytics_early
+description = Provide early hooks for registering layers in tracelytics.
+core = 7.x
+dependencies[] = tracelytics
+
+; Information added by drupal.org packaging script on 2012-12-05
+version = "7.x-1.4"
+core = "7.x"
+project = "tracelytics"
+datestamp = "1354745033"
+
