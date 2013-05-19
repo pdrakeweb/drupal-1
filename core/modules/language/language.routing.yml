@@ -18,3 +18,10 @@ language_negotiation_selected:
     _form: 'Drupal\language\Form\NegotiationSelectedForm'
   requirements:
     _permission: 'administer languages'
+
+language_content_settings:
+  pattern: '/admin/config/regional/content-language'
+  defaults:
+    _form: 'Drupal\language\Form\ContentLanguageSettingsForm'
+  requirements:
+    _permission: 'administer languages'
