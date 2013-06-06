@@ -24,6 +24,13 @@ class DatabaseSchema_mysql extends DatabaseSchema {
   const COMMENT_MAX_COLUMN = 255;
 
   /**
+   * Field types which are considered large objects.
+   *
+   * @var array
+   */
+  protected static $lobTypes = array('blob', 'text');
+
+  /**
    * Get information about the table and database name from the prefix.
    *
    * @return
@@ -80,9 +87,36 @@ class DatabaseSchema_mysql extends DatabaseSchema {
 
     // Provide defaults if needed.
     $table += array(
-      'mysql_engine' => 'InnoDB',
+      'mysql_engine' => isset($info['mysql_engine']) ? $info['mysql_engine'] : 'InnoDB',
       'mysql_character_set' => 'utf8',
     );
+
+    // Modify the table schema to comply with MEMORY storage engine restrictions.
+    if ($table['mysql_engine'] == 'MEMORY') {
+
+      // The MEMORY engine requires that all fields which participate in indexes
+      // which can be any non-LOB field must occur before any LOB fields.
+      // Re-order fields to place any LOB fields at the end of the table
+      // definition.
+      uasort($table['fields'], array('self', 'compareFieldTypes'));
+
+      // The MEMORY engine does not support the use of LOB fields in indexes.
+      // Remove indexes which utilize LOB fields.
+      foreach($table['indexes'] as $index_name => $index_fields) {
+        foreach ($index_fields as $index_field) {
+          if (is_array($index_field)) {
+            $field_name = $index_field[0];
+          }
+          else {
+            $field_name = $index_field;
+          }
+          if (in_array($table['fields'][$field_name]['type'], self::$lobTypes)) {
+            unset($table['indexes'][$index_name]);
+            break;
+          }
+        }
+      }
+    }
 
     $sql = "CREATE TABLE {" . $name . "} (\n";
 
@@ -115,6 +149,29 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     }
 
     return array($sql);
+  }
+
+  /**
+   * Comparison function to sort table fields according to whether they are a
+   * BLOB/CLOB type.
+   *
+   * @param array $field1
+   *   The first field for comparison.
+   * @param array $field2
+   *   The second field for comparison.
+   * @return number
+   */
+  protected static function compareFieldTypes($field1, $field2) {
+    $field1_is_lob = in_array($field1['type'], self::$lobTypes);
+    $field2_is_lob = in_array($field2['type'], self::$lobTypes);
+
+    if (!$field1_is_lob && $field2_is_lob) {
+      return -1;
+    }
+    elseif ($field1_is_lob && !$field2_is_lob) {
+      return 1;
+    }
+    return 0;
   }
 
   /**

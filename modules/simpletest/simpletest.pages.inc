@@ -440,6 +440,15 @@ function simpletest_settings_form($form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => t('General'),
   );
+  if (db_driver() == 'mysql') {
+    $form['general']['simpletest_mysql_engine'] = array(
+      '#type' => 'select',
+      '#title' => t('MySQL table engine'),
+      '#options' => array(NULL => t('- Default -')) + drupal_map_assoc(array('MEMORY', 'MyISAM', 'InnoDB')),
+      '#default_value' => variable_get('simpletest_mysql_engine', NULL),
+      '#description' => t('Forces the chosen MySQL table engine to be used when running tests, which may speed up testing. Do not use when running database tests.  The MEMORY engine will only work with MySQL versions where it supports BLOB/text columns.'),
+    );
+  }
   $form['general']['simpletest_clear_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('Clear results after each complete test suite run'),

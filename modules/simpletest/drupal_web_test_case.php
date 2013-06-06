@@ -1297,9 +1297,11 @@ class DrupalWebTestCase extends DrupalTestCase {
   /**
    * Changes the database connection to the prefixed one.
    *
+   * @param $mysql_engine
+   *   The name of the mysql table engine.
    * @see DrupalWebTestCase::setUp()
    */
-  protected function changeDatabasePrefix() {
+  protected function changeDatabasePrefix($mysql_engine = NULL) {
     if (empty($this->databasePrefix)) {
       $this->prepareDatabasePrefix();
       // If $this->prepareDatabasePrefix() failed to work, return without
@@ -1317,6 +1319,9 @@ class DrupalWebTestCase extends DrupalTestCase {
       $connection_info[$target]['prefix'] = array(
         'default' => $value['prefix']['default'] . $this->databasePrefix,
       );
+      if (isset($mysql_engine)) {
+        $connection_info[$target]['mysql_engine'] = $mysql_engine;
+      }
     }
     Database::addConnectionInfo('default', 'default', $connection_info['default']);
 
@@ -1421,6 +1426,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     }
 
     // Reset all statics and variables to perform tests in a clean environment.
+    $mysql_engine = $conf['simpletest_mysql_engine'];
     $conf = array();
     drupal_static_reset();
 
@@ -1428,7 +1434,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     // All static variables need to be reset before the database prefix is
     // changed, since DrupalCacheArray implementations attempt to
     // write back to persistent caches when they are destructed.
-    $this->changeDatabasePrefix();
+    $this->changeDatabasePrefix($mysql_engine);
     if (!$this->setupDatabasePrefix) {
       return FALSE;
     }

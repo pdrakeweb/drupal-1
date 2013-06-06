@@ -8,3 +8,4 @@ projects[drupal][patch][1739986] = http://drupal.org/files/870772-ua-hashmac-clu
 projects[drupal][patch][2011092] = http://drupal.org/files/drupal-increase_wait_timeout_during_test_run-2011092-2-D7_0.patch
 projects[drupal][patch][2011780] = http://drupal.org/files/drupal-taxonomy_vocabulary_test_remove_auto-increment_assumption-2011780-1.patch
 projects[drupal][patch][2011822] = http://drupal.org/files/drupal-trigger_content_actions_auto-increment_fix-2011822-1.patch
+projects[drupal][patch][915922] = http://drupal.org/files/D7-drupal-support_simpletest_table_engine-915922-12.patch
