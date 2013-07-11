@@ -87,63 +87,77 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
   protected $presigned_urls = array();
 
   /**
+   * PHP SUCKS
+   */
+  protected $constructed = FALSE;
+
+  /**
    * Object constructor
    *
    * Sets the bucket name
    */
   public function __construct() {
-    $this->bucket = $bucket = variable_get('amazons3_bucket', '');
-
-    // CNAME support for customising S3 URLs
-    if (variable_get('amazons3_cname', 0)) {
-      $domain = variable_get('amazons3_domain', '');
-      if(strlen($domain) > 0) {
-        $this->domain = 'http://' . $domain;
-      }
-      else {
-        $this->domain = 'http://' . $this->bucket;
-      }
-    }
-    else {
-      $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
-    }
-
-    // Check whether local file caching is turned on
-    if (variable_get('amazons3_cache', FALSE)) {
-      $this->caching = TRUE;
-    }
-
-    // Torrent list
-    $torrents = explode("\n", variable_get('amazons3_torrents', ''));
-    $torrents = array_map('trim', $torrents);
-    $torrents = array_filter($torrents, 'strlen');
-    $this->torrents = $torrents;
-
-
-    // Presigned url-list
-    $presigned_urls = explode("\n", variable_get('amazons3_presigned_urls', ''));
-    $presigned_urls = array_map('trim', $presigned_urls);
-    $presigned_urls = array_filter($presigned_urls, 'strlen');
-    $this->presigned_urls = array();
-    foreach ($presigned_urls as $presigned_url) {
-      // Check for an explicit key.
-      $matches = array();
-      if (preg_match('/(.*)\|(.*)/', $presigned_url, $matches)) {
-        $this->presigned_urls[$matches[2]] = $matches[1];
-      }
-      else {
-        $this->presigned_urls[$presigned_url] = 60;
-      }
-    }
-
-    // Force "save as" list
-    $saveas = explode("\n", variable_get('amazons3_saveas', ''));
-    $saveas = array_map('trim', $saveas );
-    $saveas  = array_filter($saveas , 'strlen');
-    $this->saveas  = $saveas;
-
+    $this->_construct_once();
   }
 
+  /**
+   * PHP calls methods on this object before it calls the constructor.  But not
+   * anymore.
+   */
+  protected function _construct_once() {
+    if (!$this->constructed) {
+      $this->bucket = $bucket = variable_get('amazons3_bucket', '');
+
+      // CNAME support for customising S3 URLs
+      if (variable_get('amazons3_cname', 0)) {
+        $domain = variable_get('amazons3_domain', '');
+        if(strlen($domain) > 0) {
+          $this->domain = 'http://' . $domain;
+        }
+        else {
+          $this->domain = 'http://' . $this->bucket;
+        }
+      }
+      else {
+        $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
+      }
+
+      // Check whether local file caching is turned on
+      if (variable_get('amazons3_cache', FALSE)) {
+        $this->caching = TRUE;
+      }
+
+      // Torrent list
+      $torrents = explode("\n", variable_get('amazons3_torrents', ''));
+      $torrents = array_map('trim', $torrents);
+      $torrents = array_filter($torrents, 'strlen');
+      $this->torrents = $torrents;
+
+
+      // Presigned url-list
+      $presigned_urls = explode("\n", variable_get('amazons3_presigned_urls', ''));
+      $presigned_urls = array_map('trim', $presigned_urls);
+      $presigned_urls = array_filter($presigned_urls, 'strlen');
+      $this->presigned_urls = array();
+      foreach ($presigned_urls as $presigned_url) {
+        // Check for an explicit key.
+        $matches = array();
+        if (preg_match('/(.*)\|(.*)/', $presigned_url, $matches)) {
+          $this->presigned_urls[$matches[2]] = $matches[1];
+        }
+        else {
+          $this->presigned_urls[$presigned_url] = 60;
+        }
+      }
+
+      // Force "save as" list
+      $saveas = explode("\n", variable_get('amazons3_saveas', ''));
+      $saveas = array_map('trim', $saveas );
+      $saveas  = array_filter($saveas , 'strlen');
+      $this->saveas  = $saveas;
+      $this->constructed = TRUE;
+    }
+  }
 
   /**
    * Sets the stream resource URI.
@@ -572,6 +586,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-stat.php
    */
   public function stream_stat() {
+    $this->_construct_once();
     return $this->_stat();
   }
 
@@ -732,6 +747,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.url-stat.php
    */
   public function url_stat($uri, $flags) {
+    $this->_construct_once();
     return $this->_stat($uri);
   }
 
@@ -1017,7 +1033,8 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    */
   protected function _amazons3_get_object($uri, $cache = TRUE) {
     $uri = rtrim($uri,'/');
-
+    var_dump($cache);
+    var_dump($uri);
     if ($cache) {
       $metadata = $this->_amazons3_get_cache($uri);
       if ($metadata) {
