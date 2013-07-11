@@ -552,11 +552,6 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  */
 # $conf['allow_authorize_operations'] = FALSE;
 
-$conf['aws_key'] = '';
-$conf['aws_secret'] = '';
-$conf['aws_account_id'] = '';
-$conf['amazons3-bucket'] = 'acquia-drupal-files-test';
-
 if (file_exists('/var/www/site-php')) {
   require('/var/www/site-php/d7cloud/d7cloud-settings.inc');
 }
