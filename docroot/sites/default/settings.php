@@ -558,5 +558,5 @@ $conf['aws_account_id'] = '';
 $conf['amazons3-bucket'] = 'acquia-drupal-files-test';
 
 if (file_exists('/var/www/site-php')) {
-  require('/var/www/site-php/d7clouddev/d7clouddev-settings.inc');
+  require('/var/www/site-php/d7cloud/d7cloud-settings.inc');
 }
