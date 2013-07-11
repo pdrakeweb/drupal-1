@@ -23,21 +23,35 @@ function amazons3_stream_wrappers() {
 /**
  * Implements hook_stream_wrappers_alter().
  *
- * Alter the stream wrappers.
+ * Alter the public stream wrapper.
  */
 function amazons3_stream_wrappers_alter(&$wrappers) {
-  $wrappers = array(
-    'public' => array(
-      'name' => t('Public files (Amazon S3)'),
-      'class' => 'AmazonS3StreamWrapper',
-      'description' => t('Public local files served by Amazon S3.'),
-      'type' => STREAM_WRAPPERS_NORMAL,
-    ),
-  );
+  if (variable_get('amazons3_public_override', FALSE)) {
+    $wrappers = array(
+      'public' => array(
+        'name' => t('Public files (Amazon S3)'),
+        'class' => 'AmazonS3StreamWrapper',
+        'description' => t('Public local files served by Amazon S3.'),
+        'type' => STREAM_WRAPPERS_NORMAL,
+      ),
+    );
+  }
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter the system settings form to disable the public files path setting
+ * field.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param string $form_id
+ */
 function amazons3_form_system_file_system_settings_alter(&$form, &$form_state, $form_id) {
-  $form['file_public_path']['#disabled'] = TRUE;
+  if (variable_get('amazons3_public_stream', FALSE)) {
+    $form['file_public_path']['#disabled'] = TRUE;
+  }
 }
 
 /**
@@ -51,10 +65,21 @@ function amazons3_menu() {
     'description' => 'Configure your S3 credentials',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('amazons3_admin'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer amazons3'),
   );
 
   return $items;
+}
+
+/**
+ * Implementation of hook_permission()
+ */
+function amazons3_permission() {
+  return array(
+    'administer amazons3' => array(
+      'title' => t('Administer AmazonS3'),
+    ),
+  );
 }
 
 /**
@@ -90,6 +115,13 @@ function amazons3_admin() {
     '#title'          => t('Enable database caching'),
     '#description'    => t('Enable a local file metadata cache, this significantly reduces calls to S3'),
     '#default_value'  => variable_get('amazons3_cache', 1),
+  );
+
+  $form['amazons3_public_override'] = array(
+    '#type'           => 'checkbox',
+    '#title'          => t('Enable public files S3 override'),
+    '#description'    => t('Store files directed to the public file system in S3'),
+    '#default_value'  => variable_get('amazons3_public_override', 1),
   );
 
   $form['amazons3_cname'] = array(

@@ -33,6 +33,9 @@ projects[drupal][version] = 7
 ; --------
 projects[amazons3] = amazons3
 projects[amazons3][type] = module
+projects[amazons3][version] = 1.x-dev
+projects[amazons3][download][type] = git
+projects[amazons3][download][url] = git@github.com:pdrakeweb/amazons3.git
 
 projects[awssdk] = awssdk
 projects[awssdk][type] = module
@@ -40,8 +43,8 @@ projects[awssdk][type] = module
 projects[libraries] = libraries
 projects[libraries][type] = module
 
-projects[devel] = libraries
-projects[devel][type] = module
+projects[features] = features
+projects[features][type] = module
 
 ; Libraries
 ; ---------

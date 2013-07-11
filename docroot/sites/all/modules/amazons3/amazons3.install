@@ -6,6 +6,30 @@
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function amazons3_requirements($phase) {
+  $t = get_t();
+
+  if ($phase != 'runtime') {
+    return array();
+  }
+
+  $fopen_allowed = ini_get('allow_url_fopen');
+  $ok_message = $t('The PHP allow_url_fopen setting is on.');
+  $error_message = $t('Amazon S3 module requires that the allow_url_fopen setting be turned on in php.ini.');
+
+  $requirements['amazons3_allow_url_fopen'] = array(
+    'severity' => $fopen_allowed ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+    'title' => $t('AmazonS3'),
+    'value' => 'allow_url_fopen',
+    'description' => $fopen_allowed ? $ok_message : $error_message,
+  );
+
+  return $requirements;
+}
+
+/**
  * Implements hook_uninstall().
  */
 function amazons3_uninstall() {
@@ -64,7 +88,7 @@ function amazons3_schema() {
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
-        'default' => 0,
+        'default' => '',
       ),
     ),
     'indexes' => array(
@@ -131,5 +155,16 @@ function amazons3_update_7100($sandbox) {
     'primary key' => array('uri'),
   );
   db_create_table('amazons3_file', $schema['amazons3_file']);
+}
+
+function amazons3_update_7101(&$sandbox) {
+  $spec = array(
+    'description' => 'The uid of the user who is associated with the file (not Drupal uid).',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  );
+  db_change_field('amazons3_file', 'uid', 'uid', $spec);
 }
 
