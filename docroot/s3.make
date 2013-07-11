@@ -51,6 +51,9 @@ projects[cloud_storage_test][download][revision] = 7.x-1.0
 projects[ctools] = features
 projects[ctools][type] = module
 
+projects[devel] = features
+projects[devel][type] = module
+
 projects[features] = features
 projects[features][type] = module
 
