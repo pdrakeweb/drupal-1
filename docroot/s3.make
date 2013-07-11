@@ -29,26 +29,19 @@ api = 2
 ; Drupal 7.x. Requires the `core` property to be set to 7.x.
 projects[drupal][version] = 7
 
-  
-  
 ; Modules
 ; --------
-projects[] = amazons3
-projects[] = awssdk
-projects[] = libraries
+projects[amazons3] = amazons3
+projects[amazons3][type] = module
 
-  
+projects[awssdk] = awssdk
+projects[awssdk][type] = module
 
-; Themes
-; --------
+projects[libraries] = libraries
+projects[libraries][type] = module
 
-  
-  
 ; Libraries
 ; ---------
 libraries[aws-sdk-for-php][type] = "libraries"
 libraries[aws-sdk-for-php][download][type] = "git"
 libraries[aws-sdk-for-php][download][url] = "https://github.com/amazonwebservices/aws-sdk-for-php.git"
-
-
-
