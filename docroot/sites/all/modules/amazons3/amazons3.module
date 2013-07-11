@@ -21,6 +21,26 @@ function amazons3_stream_wrappers() {
 }
 
 /**
+ * Implements hook_stream_wrappers_alter().
+ *
+ * Alter the stream wrappers.
+ */
+function amazons3_stream_wrappers_alter(&$wrappers) {
+  $wrappers = array(
+    'public' => array(
+      'name' => t('Public files (Amazon S3)'),
+      'class' => 'AmazonS3StreamWrapper',
+      'description' => t('Public local files served by Amazon S3.'),
+      'type' => STREAM_WRAPPERS_NORMAL,
+    ),
+  );
+}
+
+function amazons3_form_system_file_system_settings_alter(&$form, &$form_state, $form_id) {
+  $form['file_public_path']['#disabled'] = TRUE;
+}
+
+/**
  * Implements hook_menu().
  */
 function amazons3_menu() {
