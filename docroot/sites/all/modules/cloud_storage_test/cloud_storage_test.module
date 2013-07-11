@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Cloud Storage Test feature.
+ */
+
+include_once 'cloud_storage_test.features.inc';
