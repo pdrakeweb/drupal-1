@@ -1033,8 +1033,6 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    */
   protected function _amazons3_get_object($uri, $cache = TRUE) {
     $uri = rtrim($uri,'/');
-    var_dump($cache);
-    var_dump($uri);
     if ($cache) {
       $metadata = $this->_amazons3_get_cache($uri);
       if ($metadata) {
