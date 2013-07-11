@@ -40,6 +40,9 @@ projects[awssdk][type] = module
 projects[libraries] = libraries
 projects[libraries][type] = module
 
+projects[devel] = libraries
+projects[devel][type] = module
+
 ; Libraries
 ; ---------
 libraries[aws-sdk-for-php][type] = "libraries"
