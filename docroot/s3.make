@@ -38,6 +38,9 @@ projects[amazons3][download][type] = git
 projects[amazons3][download][url] = git@github.com:pdrakeweb/amazons3.git
 projects[amazons3][download][revision] = 7.x-1.x
 
+projects[awssdk] = awssdk
+projects[awssdk][type] = module
+
 projects[cloud_storage_test] = amazons3
 projects[cloud_storage_test][type] = module
 projects[cloud_storage_test][version] = 1.0
@@ -45,8 +48,8 @@ projects[cloud_storage_test][download][type] = git
 projects[cloud_storage_test][download][url] = https://github.com/mattsmith89/Cloud_Storage_Test.git
 projects[cloud_storage_test][download][revision] = 7.x-1.0
 
-projects[awssdk] = awssdk
-projects[awssdk][type] = module
+projects[ctools] = features
+projects[ctools][type] = module
 
 projects[features] = features
 projects[features][type] = module
