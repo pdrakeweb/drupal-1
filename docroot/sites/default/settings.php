@@ -552,11 +552,11 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  */
 # $conf['allow_authorize_operations'] = FALSE;
 
-$conf['aws_key'] = 'AKIAJKF7ICBMRMCWBGLQ';
-$conf['aws_secret'] = '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';
-$conf['aws_account_id'] = '374180267703';
+$conf['aws_key'] = '';
+$conf['aws_secret'] = '';
+$conf['aws_account_id'] = '';
 $conf['amazons3-bucket'] = 'acquia-drupal-files-test';
 
 if (file_exists('/var/www/site-php')) {
-  require('/var/www/site-php/d7clouddev/D7-d7clouddev-settings.inc');
+  require('/var/www/site-php/d7clouddev/d7clouddev-settings.inc');
 }
