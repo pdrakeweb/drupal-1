@@ -41,17 +41,17 @@ projects[amazons3][download][revision] = 7.x-1.x-acquia
 projects[awssdk] = awssdk
 projects[awssdk][type] = module
 
-projects[cloud_storage_test] = amazons3
+projects[cloud_storage_test] = cloud_storage_test
 projects[cloud_storage_test][type] = module
 projects[cloud_storage_test][version] = 1.0
 projects[cloud_storage_test][download][type] = git
 projects[cloud_storage_test][download][url] = https://github.com/mattsmith89/Cloud_Storage_Test.git
-projects[cloud_storage_test][download][revision] = 7.x-1.0
+projects[cloud_storage_test][download][revision] = 7.x-1.0-s3
 
-projects[ctools] = features
+projects[ctools] = ctools
 projects[ctools][type] = module
 
-projects[devel] = features
+projects[devel] = devel
 projects[devel][type] = module
 
 projects[features] = features
@@ -60,7 +60,7 @@ projects[features][type] = module
 projects[libraries] = libraries
 projects[libraries][type] = module
 
-projects[strongarm] = libraries
+projects[strongarm] = strongarm
 projects[strongarm][type] = module
 
 ; Libraries
