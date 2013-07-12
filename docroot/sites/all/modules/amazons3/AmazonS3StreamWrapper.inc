@@ -87,61 +87,72 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
   protected $presigned_urls = array();
 
   /**
+   * @var boolean Whether the object has been constructed.
+   */
+  protected $constructed = FALSE;
+
+  /**
    * Object constructor
    *
    * Sets the bucket name
    */
   public function __construct() {
-    $this->bucket = $bucket = variable_get('amazons3_bucket', '');
+    $this->_constructOnce();
+  }
 
-    // CNAME support for customising S3 URLs
-    if (variable_get('amazons3_cname', 0)) {
-      $domain = variable_get('amazons3_domain', '');
-      if(strlen($domain) > 0) {
-        $this->domain = 'http://' . $domain;
+  protected function _constructOnce() {
+    if (!$this->constructed) {
+      $this->bucket = $bucket = variable_get('amazons3_bucket', '');
+
+      // CNAME support for customising S3 URLs
+      if (variable_get('amazons3_cname', 0)) {
+        $domain = variable_get('amazons3_domain', '');
+        if(strlen($domain) > 0) {
+          $this->domain = 'http://' . $domain;
+        }
+        else {
+          $this->domain = 'http://' . $this->bucket;
+        }
       }
       else {
-        $this->domain = 'http://' . $this->bucket;
+        $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
       }
-    }
-    else {
-      $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
-    }
 
-    // Check whether local file caching is turned on
-    if (variable_get('amazons3_cache', FALSE)) {
-      $this->caching = TRUE;
-    }
-
-    // Torrent list
-    $torrents = explode("\n", variable_get('amazons3_torrents', ''));
-    $torrents = array_map('trim', $torrents);
-    $torrents = array_filter($torrents, 'strlen');
-    $this->torrents = $torrents;
-
-
-    // Presigned url-list
-    $presigned_urls = explode("\n", variable_get('amazons3_presigned_urls', ''));
-    $presigned_urls = array_map('trim', $presigned_urls);
-    $presigned_urls = array_filter($presigned_urls, 'strlen');
-    $this->presigned_urls = array();
-    foreach ($presigned_urls as $presigned_url) {
-      // Check for an explicit key.
-      $matches = array();
-      if (preg_match('/(.*)\|(.*)/', $presigned_url, $matches)) {
-        $this->presigned_urls[$matches[2]] = $matches[1];
+      // Check whether local file caching is turned on
+      if (variable_get('amazons3_cache', FALSE)) {
+        $this->caching = TRUE;
       }
-      else {
-        $this->presigned_urls[$presigned_url] = 60;
+
+      // Torrent list
+      $torrents = explode("\n", variable_get('amazons3_torrents', ''));
+      $torrents = array_map('trim', $torrents);
+      $torrents = array_filter($torrents, 'strlen');
+      $this->torrents = $torrents;
+
+
+      // Presigned url-list
+      $presigned_urls = explode("\n", variable_get('amazons3_presigned_urls', ''));
+      $presigned_urls = array_map('trim', $presigned_urls);
+      $presigned_urls = array_filter($presigned_urls, 'strlen');
+      $this->presigned_urls = array();
+      foreach ($presigned_urls as $presigned_url) {
+        // Check for an explicit key.
+        $matches = array();
+        if (preg_match('/(.*)\|(.*)/', $presigned_url, $matches)) {
+          $this->presigned_urls[$matches[2]] = $matches[1];
+        }
+        else {
+          $this->presigned_urls[$presigned_url] = 60;
+        }
       }
+
+      // Force "save as" list
+      $saveas = explode("\n", variable_get('amazons3_saveas', ''));
+      $saveas = array_map('trim', $saveas );
+      $saveas  = array_filter($saveas , 'strlen');
+      $this->saveas  = $saveas;
+      $this->constructed = TRUE;
     }
-
-    // Force "save as" list
-    $saveas = explode("\n", variable_get('amazons3_saveas', ''));
-    $saveas = array_map('trim', $saveas );
-    $saveas  = array_filter($saveas , 'strlen');
-    $this->saveas  = $saveas;
-
   }
 
 
@@ -939,6 +950,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-stat.php
    */
   protected function _stat($uri = NULL) {
+    $this->_constructOnce();
     if(!isset($uri)) {
       $uri = $this->uri;
     }
