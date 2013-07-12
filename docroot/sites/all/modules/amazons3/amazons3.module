@@ -17,6 +17,11 @@ function amazons3_stream_wrappers() {
       'class' => 'AmazonS3StreamWrapper',
       'description' => t('Amazon Simple Storage Service'),
     ),
+    's3private' => array(
+      'name' => 'Amazon S3 (private)',
+      'class' => 'AmazonS3PrivateStreamWrapper',
+      'description' => t('Amazon Simple Storage Service with Signed URLs'),
+    ),
   );
 }
 
@@ -91,6 +96,13 @@ function amazons3_admin() {
       '#required'       => TRUE,
   );
 
+  $form['amazons3_private_bucket'] = array(
+    '#type'           => 'textfield',
+    '#title'          => t('Private Bucket Name'),
+    '#default_value'  => variable_get('amazons3_private_bucket', ''),
+    '#required'       => TRUE,
+  );
+
   $form['amazons3_cache'] = array(
     '#type'           => 'checkbox',
     '#title'          => t('Enable database caching'),
@@ -135,7 +147,7 @@ function amazons3_admin() {
   $form['amazons3_presigned_urls'] = array(
     '#type' => 'textarea',
     '#title' => t('Presigned URLs'),
-    '#description' => t('A list of timeouts and paths that should be delivered through a presigned url. Enter one value per line, in the format timeout|path. e.g. "60|mydir/*". Paths are relative to the Drupal file directory and use patterns as per <a href="@preg_match">preg_match</a>. If no timeout is provided, it defaults to 60 seconds.', array('@preg_match' => 'http://php.net/preg_match')),
+    '#description' => t('A list of timeouts and paths for delivery through a presigned url. Enter one value per line, in the format timeout|path. e.g. "60|mydir/*". Paths are relative to the Drupal file directory and use patterns as per <a href="@preg_match">preg_match</a>. Private paths without a specific timeout will default to 60 seconds.', array('@preg_match' => 'http://php.net/preg_match')),
     '#default_value' => variable_get('amazons3_presigned_urls', ''),
     '#rows' => 10,
   );
