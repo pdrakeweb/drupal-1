@@ -36,7 +36,7 @@ projects[amazons3][type] = module
 projects[amazons3][version] = 1.x-dev
 projects[amazons3][download][type] = git
 projects[amazons3][download][url] = git@github.com:pdrakeweb/amazons3.git
-projects[amazons3][download][revision] = 7.x-1.0-beta7
+projects[amazons3][download][revision] = 7.x-1.x-acquia
 
 projects[awssdk] = awssdk
 projects[awssdk][type] = module

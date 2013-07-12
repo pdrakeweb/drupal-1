@@ -35,6 +35,18 @@ function amazons3_stream_wrappers_alter(&$wrappers) {
 }
 
 /**
+ * Alter the system settings form to avoid confusion.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param array $form_id
+ */
+function amazons3_form_system_file_system_settings_alter(&$form, &$form_state, $form_id) {
+  $form['file_public_path']['#disabled'] = TRUE;
+}
+
+
+/**
  * Implements hook_menu().
  */
 function amazons3_menu() {
