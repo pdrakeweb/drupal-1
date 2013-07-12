@@ -869,7 +869,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       $uri = $this->uri;
     }
 
-    $path  = str_replace('s3://', '', $uri);
+    $path  = preg_replace('/^(.*)\:\/\//', '', $uri);
     $path = trim($path, '/');
     return $path;
   }
