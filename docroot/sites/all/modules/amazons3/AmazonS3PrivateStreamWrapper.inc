@@ -21,6 +21,18 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
   protected function _constructOnce() {
     parent::_constructOnce();
     $this->bucket = variable_get('amazons3_private_bucket', '');
+    if (variable_get('amazons3_cname', 0)) {
+      $domain = variable_get('amazons3_private_domain', '');
+      if(strlen($domain) > 0) {
+        $this->domain = 'http://' . $domain;
+      }
+      else {
+        $this->domain = 'http://' . $this->bucket;
+      }
+    }
+    else {
+      $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
+    }
   }
 
   /**
