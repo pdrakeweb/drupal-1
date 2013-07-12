@@ -133,7 +133,7 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
     $timeout = ($info['presigned_url']) ? time() + $info['presigned_url_timeout'] : 0;
     $torrent = ($info['download_type'] == 'torrent') ? TRUE : FALSE;
     $response = ($info['presigned_url']) ? $info['response'] : array();
-    $url = $this->getCf()->get_private_object_url($this->domain, $local_path, $timeout, array('torrent' => $torrent, 'response' => $response));
+    $url = $this->getCf()->get_private_object_url(variable_get('amazons3_private_domain', ''), $local_path, $timeout, array('torrent' => $torrent, 'response' => $response));
     return $url;
   }
 
