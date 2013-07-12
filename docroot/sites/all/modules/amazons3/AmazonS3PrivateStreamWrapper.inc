@@ -10,11 +10,6 @@
 class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
 
   /**
-   * @var String S3 bucket name.
-   */
-  protected $bucket;
-
-  /**
    * Object constructor
    *
    * Sets the bucket name

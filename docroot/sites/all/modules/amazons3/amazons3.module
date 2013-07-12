@@ -17,7 +17,7 @@ function amazons3_stream_wrappers() {
       'class' => 'AmazonS3StreamWrapper',
       'description' => t('Amazon Simple Storage Service'),
     ),
-    's3private' => array(
+    'privates3' => array(
       'name' => 'Amazon S3 (private)',
       'class' => 'AmazonS3PrivateStreamWrapper',
       'description' => t('Amazon Simple Storage Service with Signed URLs'),
