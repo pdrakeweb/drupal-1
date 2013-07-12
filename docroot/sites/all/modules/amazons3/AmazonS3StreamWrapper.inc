@@ -30,6 +30,11 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
   protected $domain;
 
   /**
+   * @var bool Is the CDN or S3 Static Site configured to redirect 404 to Drupal.
+   */
+  protected $redirect_404;
+
+  /**
    * @var int Current read/write position
    */
   protected $position = 0;
@@ -118,6 +123,8 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
         $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
       }
 
+      $this->redirect_404 = variable_get('amazons3_redirect_404', FALSE);
+
       // Check whether local file caching is turned on
       if (variable_get('amazons3_cache', FALSE)) {
         $this->caching = TRUE;
@@ -190,19 +197,19 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    */
   public function getExternalUrl() {
 
+    $local_path = $this->getLocalPath();
+
     // Image styles support
     // Delivers the first request to an image from the private file system
     // otherwise it returns an external URL to an image that has not been
     // created yet
-    $path = explode('/', $this->getLocalPath());
+    $path = explode('/', $local_path);
     if ($path[0] == 'styles') {
-      if (!$this->_amazons3_get_object($this->uri, $this->caching)) {
+      if (!$this->redirect_404 && !$this->_amazons3_get_object($this->uri, $this->caching)) {
         array_shift($path);
         return url('system/files/styles/' . implode('/', $path), array('absolute' => true));
       }
     }
-
-    $local_path = $this->getLocalPath();
 
     $info = array(
       'download_type' => 'http',
