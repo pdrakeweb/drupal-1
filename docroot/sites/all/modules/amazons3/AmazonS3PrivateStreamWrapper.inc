@@ -50,6 +50,9 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
    * @see http://docs.amazonwebservices.com/AWSSDKforPHP/latest/#i=AmazonS3
    */
   protected function getCf() {
+    if(!libraries_load('awssdk')) {
+      drupal_set_message('Unable to load the AWS SDK. Please check you have installed the library correctly and configured your CF settings.'. 'error');
+    }
     if($this->cf == null) {
       try {
         $this->cf = new AmazonCloudFront();
