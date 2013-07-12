@@ -54,6 +54,9 @@ projects[libraries][type] = module
 projects[strongarm] = strongarm
 projects[strongarm][type] = module
 
+projects[views] = strongarm
+projects[views][type] = module
+
 ; Libraries
 ; ---------
 libraries[aws-sdk-for-php][type] = "libraries"
