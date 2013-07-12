@@ -195,6 +195,9 @@ function amazons3_admin_validate($form, &$form_state) {
   else if(!class_exists('AmazonS3')) {
     form_set_error('amazons3_bucket', t('Cannot load AmazonS3 class. Please check the awssdk is installed correctly'));
   }
+  else if(!class_exists('AmazonCloudFront')) {
+    form_set_error('amazons3_bucket', t('Cannot load AmazonCloudFront class. Please check the awssdk is installed correctly'));
+  }
   else {
     try {
       $s3 = new AmazonS3();
