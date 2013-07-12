@@ -10,7 +10,6 @@
  */
 function amazons3_uninstall() {
   variable_del('amazons3_bucket');
-  variable_del('amazons3_private_bucket');
   variable_del('amazons3_cname');
   variable_del('amazons3_domain');
   variable_del('amazons3_cache');
