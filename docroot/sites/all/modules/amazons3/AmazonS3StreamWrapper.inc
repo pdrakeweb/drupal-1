@@ -880,7 +880,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       $uri = $this->uri;
     }
 
-    $path  = preg_replace('/^(.*)\:\/\//', '', $uri);
+    $path  = preg_replace('/^(.*)\:(\/\/|$)/', '', $uri);
     $path = trim($path, '/');
     return $path;
   }
@@ -1000,7 +1000,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
     }
     if($uri != null) {
       $path = $this->getLocalPath($uri);
-      if (strlen($path) === 0) {
+      if (strlen($path) === 0 || $path == '/') {
         return TRUE;
       }
       $response = $this->getS3()->list_objects($this->bucket, array(
