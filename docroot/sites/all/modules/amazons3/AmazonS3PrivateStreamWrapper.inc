@@ -10,6 +10,11 @@
 class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
 
   /**
+   * @var AmazonS3 CF connection object
+   */
+  protected $cf = null;
+
+  /**
    * Object constructor
    *
    * Sets the bucket name
@@ -20,6 +25,7 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
 
   protected function _constructOnce() {
     parent::_constructOnce();
+
     $this->bucket = variable_get('amazons3_private_bucket', '');
     if (variable_get('amazons3_cname', 0)) {
       $domain = variable_get('amazons3_private_domain', '');
@@ -33,6 +39,29 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
     else {
       $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
     }
+  }
+
+  /**
+   * Get the Cf connection object
+   *
+   * @return
+   *   Cf connection object (AmazonS3)
+   *
+   * @see http://docs.amazonwebservices.com/AWSSDKforPHP/latest/#i=AmazonS3
+   */
+  protected function getCf() {
+    if($this->cf == null) {
+      try {
+        $this->cf = new AmazonCloudFront();
+      }
+      catch(RequestCore_Exception $e){
+        drupal_set_message('There was a problem connecting to CF', 'error');
+      }
+      catch(Exception $e) {
+        drupal_set_message('There was a problem using CF: ' . $e->getMessage(), 'error');
+      }
+    }
+    return $this->cf;
   }
 
   /**
@@ -61,7 +90,7 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
 
     $info = array(
       'download_type' => 'http',
-      'presigned_url' => FALSE,
+      'presigned_url' => TRUE,
       'presigned_url_timeout' => 60,
       'response' => array(),
     );
@@ -80,9 +109,7 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
       }
     }
 
-    // Presigned URLs
-    $info['presigned_url'] = TRUE;
-    $info['presigned_url_timeout'] = 60;
+    // Presigned URL overrides
     foreach ($this->presigned_urls as $path => $timeout) {
       if (preg_match('#' . strtr($path, '#', '\#') . '#', $local_path)) {
         $info['presigned_url_timeout'] = $timeout;
@@ -103,12 +130,7 @@ class AmazonS3PrivateStreamWrapper extends AmazonS3StreamWrapper {
     $timeout = ($info['presigned_url']) ? time() + $info['presigned_url_timeout'] : 0;
     $torrent = ($info['download_type'] == 'torrent') ? TRUE : FALSE;
     $response = ($info['presigned_url']) ? $info['response'] : array();
-    if ($info['presigned_url'] || $info['download_type'] != 'http' || !empty($info['response'])) {
-      $url = $this->getS3()->get_object_url($this->bucket, $local_path, $timeout, array('torrent' => $torrent, 'response' => $response));
-      return $url;
-    }
-
-    $url = $this->domain . '/' . $local_path;
+    $url = $this->getCf()->get_private_object_url($this->domain, $local_path, $timeout, array('torrent' => $torrent, 'response' => $response));
     return $url;
   }
 
