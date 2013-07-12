@@ -131,7 +131,7 @@ function amazons3_admin() {
 
   $form['amazons3_private_domain'] = array(
     '#type'           => 'textfield',
-    '#title'          => t('CNAME'),
+    '#title'          => t('Private CNAME'),
     '#description'    => t('CloudFront private file domain.'),
     '#default_value'  => variable_get('amazons3_private_domain', ''),
     '#states'         => array(
