@@ -102,7 +102,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
     // CNAME support for customising S3 URLs
     if (variable_get('amazons3_cname', 0)) {
       $this->domains = array();
-      $domains = explode(',', variable_get('amazons3_domains', ''));
+      $domains = explode("\n", variable_get('amazons3_domains', ''));
       foreach($domains as $domain) {
         $this->domains[] = $domain;
       }
