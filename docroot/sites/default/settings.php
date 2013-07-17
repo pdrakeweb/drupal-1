@@ -553,5 +553,5 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 # $conf['allow_authorize_operations'] = FALSE;
 
 if (file_exists('/var/www/site-php')) {
-  require('/var/www/site-php/d7cloud/d7cloud-settings.inc');
+  require('/var/www/site-php/d7test/d7test-settings.inc');
 }
