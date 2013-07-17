@@ -21,6 +21,37 @@ function amazons3_stream_wrappers() {
 }
 
 /**
+ * Implements hook_stream_wrappers_alter().
+ *
+ * Alter the stream wrappers.
+ */
+function amazons3_stream_wrappers_alter(&$wrappers) {
+  if (variable_get('amazons3_public', FALSE)) {
+    $wrappers['public'] = array(
+      'name' => t('Public files (Amazon S3)'),
+      'class' => 'AmazonS3StreamWrapper',
+      'description' => t('Public files stored on Amazon S3.'),
+      'type' => STREAM_WRAPPERS_NORMAL,
+    );
+  }
+}
+
+/**
+ * Alter the system settings form to avoid confusion regarding the public file
+ * path setting.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param array $form_id
+ */
+function amazons3_form_system_file_system_settings_alter(&$form, &$form_state, $form_id) {
+  if (variable_get('amazons3_public', FALSE)) {
+    $form['file_public_path']['#disabled'] = TRUE;
+    $form['file_public_path']['#description'] = 'This setting is unused when the public file stream is configured to use S3.';
+  }
+}
+
+/**
  * Implements hook_menu().
  */
 function amazons3_menu() {
@@ -83,16 +114,11 @@ function amazons3_admin() {
     '#default_value'  => variable_get('amazons3_cache', 1),
   );
 
-  $form['amazons3_protocol'] = array(
-    '#type'           => 'select',
-    '#title'          => t('File delivery protocol'),
-    '#description'    => t('Choose the protocol that should be used to deliver files from S3'),
-    '#default_value'  => variable_get('amazons3_protocol', 'http://'),
-    '#options'        => array(
-      'http://' => t('HTTP'),
-      'https://' => t('HTTPS'),
-      '//' => t('Protocol Relative'),
-     ),
+  $form['amazons3_public'] = array(
+    '#type'           => 'checkbox',
+    '#title'          => t('Public files on S3'),
+    '#description'    => t('Override the public:// file stream with the S3 stream wrapper.  Use caution when enabling this feature as pre-existing files will not be uploaded to S3 and will be unavailable.'),
+    '#default_value'  => variable_get('amazons3_public', FALSE),
   );
 
   $form['amazons3_cname'] = array(
@@ -102,16 +128,16 @@ function amazons3_admin() {
     '#default_value'  => variable_get('amazons3_cname', 0),
   );
 
-  $form['amazons3_domains'] = array(
-    '#type'           => 'textarea',
-    '#title'          => t('CDN Domain Name(s)'),
-    '#description'    => t('If serving files from CloudFront or if the domain name differs from the bucket name (one per line).'),
-    '#default_value'  => variable_get('amazons3_domains', ''),
-    '#states'         => array(
-      'visible' => array(
-        ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
-      )
-    ),
+  $form['amazons3_domain'] = array(
+      '#type'           => 'textfield',
+      '#title'          => t('CDN Domain Name'),
+      '#description'    => t('If serving files from CloudFront then the bucket name can differ from the domain name.'),
+      '#default_value'  => variable_get('amazons3_domain', ''),
+      '#states'         => array(
+        'visible' => array(
+          ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
+        )
+      ),
   );
 
   $form['amazons3_torrents'] = array(

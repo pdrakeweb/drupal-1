@@ -27,12 +27,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
   /**
    * @var string Domain we use to access files over http
    */
-  protected $domains = NULL;
-
-  /**
-   * @var string Protocol we use to access files
-   */
-  protected $protocol = 'http://';
+  protected $domain = NULL;
 
   /**
    * @var int Current read/write position
@@ -101,21 +96,17 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
 
     // CNAME support for customising S3 URLs
     if (variable_get('amazons3_cname', 0)) {
-      $this->domains = array();
-      $domains = explode("\n", variable_get('amazons3_domains', ''));
-      foreach($domains as $domain) {
-        $this->domains[] = $domain;
+      $domain = variable_get('amazons3_domain', '');
+      if(strlen($domain) > 0) {
+        $this->domain = 'http://' . $domain;
       }
-      if (empty($this->domains)) {
-        $this->domains[] = $this->bucket;
+      else {
+        $this->domain = 'http://' . $this->bucket;
       }
     }
     else {
-      $this->domains[] = $this->bucket . '.s3.amazonaws.com';
+      $this->domain = 'http://' . $this->bucket . '.s3.amazonaws.com';
     }
-
-    // Set the protocol.
-    $this->protocol = variable_get('amazons3_protocol', 'http://');
 
     // Check whether local file caching is turned on
     if (variable_get('amazons3_cache', FALSE)) {
@@ -250,7 +241,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       return $url;
     }
 
-    $url = $this->getDomain() . '/' . $local_path;
+    $url = $this->domain . '/' . $local_path;
     return $url;
   }
 
@@ -900,26 +891,9 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       $uri = $this->uri;
     }
 
-    $path  = str_replace('s3://', '', $uri);
+    $path = preg_replace('/^(.*)\:(\/\/|$)/', '', $uri);
     $path = trim($path, '/');
     return $path;
-  }
-
-  /**
-   * Return the domain using a basic consistent hashing algorithm.
-   *
-   * @param $uri
-   *   Optional URI, supplied when doing a move or rename.
-   */
-  protected function getDomain($uri = NULL) {
-    $local_path = $this->getLocalPath($uri);
-    $domain_count = count($this->domains);
-    if ($domain_count == 1) {
-      return $this->protocol . $this->domains[0];
-    }
-    else {
-      return $this->protocol . $this->domains[crc32($local_path) % $domain_count];
-    }
   }
 
   /**
@@ -929,7 +903,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    *   String specifying the path.
    */
   public function getDirectoryPath() {
-    return $this->getDomain();
+    return $this->domain;
   }
 
   /**
@@ -1067,7 +1041,8 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    *    An array if the $uri exists, otherwise FALSE.
    */
   protected function _amazons3_get_object($uri, $cache = TRUE) {
-    if ($uri == 's3://' || $uri == 's3:') {
+    if (($uri == 's3://' || $uri == 's3:') ||
+        (variable_get('amazons3_public', FALSE) && $uri == 'public://')) {
       $metadata = $this->_amazons3_format_response('/', array(), TRUE);
       return $metadata;
     }
@@ -1172,7 +1147,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    * @see https://bugs.php.net/bug.php?id=40459
    */
   private function assertConstructorCalled() {
-    if ($this->domains === NULL) {
+    if ($this->domain === NULL) {
       $this->__construct();
     }
   }
