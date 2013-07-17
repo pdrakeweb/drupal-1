@@ -918,7 +918,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       return $this->protocol . $this->domains[0];
     }
     else {
-      return $this->protocol . $this->domains[crc32($localpath) % $domain_count];
+      return $this->protocol . $this->domains[crc32($local_path) % $domain_count];
     }
   }
 
