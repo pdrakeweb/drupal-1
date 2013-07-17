@@ -17,39 +17,8 @@ function amazons3_stream_wrappers() {
       'class' => 'AmazonS3StreamWrapper',
       'description' => t('Amazon Simple Storage Service'),
     ),
-    'privates3' => array(
-      'name' => 'Amazon S3 (private)',
-      'class' => 'AmazonS3PrivateStreamWrapper',
-      'description' => t('Amazon Simple Storage Service with Signed URLs'),
-    ),
   );
 }
-
-/**
- * Implements hook_stream_wrappers_alter().
- *
- * Alter the stream wrappers.
- */
-function amazons3_stream_wrappers_alter(&$wrappers) {
-  $wrappers['public'] = array(
-    'name' => t('Public files (Amazon S3)'),
-    'class' => 'AmazonS3StreamWrapper',
-    'description' => t('Public local files served by Amazon S3.'),
-    'type' => STREAM_WRAPPERS_NORMAL,
-  );
-}
-
-/**
- * Alter the system settings form to avoid confusion.
- *
- * @param array $form
- * @param array $form_state
- * @param array $form_id
- */
-function amazons3_form_system_file_system_settings_alter(&$form, &$form_state, $form_id) {
-  $form['file_public_path']['#disabled'] = TRUE;
-}
-
 
 /**
  * Implements hook_menu().
@@ -62,10 +31,21 @@ function amazons3_menu() {
     'description' => 'Configure your S3 credentials',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('amazons3_admin'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer amazons3'),
   );
 
   return $items;
+}
+
+/**
+ * Implementation of hook_permission()
+ */
+function amazons3_permission() {
+  return array(
+    'administer amazons3' => array(
+      'title' => t('Administer AmazonS3'),
+    ),
+  );
 }
 
 /**
@@ -96,18 +76,23 @@ function amazons3_admin() {
       '#required'       => TRUE,
   );
 
-  $form['amazons3_private_bucket'] = array(
-    '#type'           => 'textfield',
-    '#title'          => t('Private Bucket Name'),
-    '#default_value'  => variable_get('amazons3_private_bucket', ''),
-    '#required'       => TRUE,
-  );
-
   $form['amazons3_cache'] = array(
     '#type'           => 'checkbox',
     '#title'          => t('Enable database caching'),
     '#description'    => t('Enable a local file metadata cache, this significantly reduces calls to S3'),
     '#default_value'  => variable_get('amazons3_cache', 1),
+  );
+
+  $form['amazons3_protocol'] = array(
+    '#type'           => 'select',
+    '#title'          => t('File delivery protocol'),
+    '#description'    => t('Choose the protocol that should be used to deliver files from S3'),
+    '#default_value'  => variable_get('amazons3_protocol', 'http://'),
+    '#options'        => array(
+      'http://' => t('HTTP'),
+      'https://' => t('HTTPS'),
+      '//' => t('Protocol Relative'),
+     ),
   );
 
   $form['amazons3_cname'] = array(
@@ -117,35 +102,16 @@ function amazons3_admin() {
     '#default_value'  => variable_get('amazons3_cname', 0),
   );
 
-  $form['amazons3_domain'] = array(
-      '#type'           => 'textfield',
-      '#title'          => t('CNAME'),
-      '#description'    => t('If serving files from CloudFront or other domain different than bucket.'),
-      '#default_value'  => variable_get('amazons3_domain', ''),
-      '#states'         => array(
-        'visible' => array(
-          ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
-        )
-      ),
-  );
-
-  $form['amazons3_private_domain'] = array(
+  $form['amazons3_domains'] = array(
     '#type'           => 'textfield',
-    '#title'          => t('Private CNAME'),
-    '#description'    => t('CloudFront private file domain.'),
-    '#default_value'  => variable_get('amazons3_private_domain', ''),
+    '#title'          => t('CDN Domain Name(s)'),
+    '#description'    => t('If serving files from CloudFront or if the domain name differs from the bucket name (one per line).'),
+    '#default_value'  => variable_get('amazons3_domains', ''),
     '#states'         => array(
       'visible' => array(
         ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
       )
     ),
-  );
-
-  $form['amazons3_redirect_404'] = array(
-    '#type'           => 'checkbox',
-    '#title'          => t('Remote 404 Redirect'),
-    '#description'    => t('Remote will redirect 404 back to site, this can improve performance for image styles. TODO Document Rewrite Rule!'),
-    '#default_value'  => variable_get('amazons3_redirect_404', 0),
   );
 
   $form['amazons3_torrents'] = array(
@@ -159,7 +125,7 @@ function amazons3_admin() {
   $form['amazons3_presigned_urls'] = array(
     '#type' => 'textarea',
     '#title' => t('Presigned URLs'),
-    '#description' => t('A list of timeouts and paths for delivery through a presigned url. Enter one value per line, in the format timeout|path. e.g. "60|mydir/*". Paths are relative to the Drupal file directory and use patterns as per <a href="@preg_match">preg_match</a>. Private paths without a specific timeout will default to 60 seconds.', array('@preg_match' => 'http://php.net/preg_match')),
+    '#description' => t('A list of timeouts and paths that should be delivered through a presigned url. Enter one value per line, in the format timeout|path. e.g. "60|mydir/*". Paths are relative to the Drupal file directory and use patterns as per <a href="@preg_match">preg_match</a>. If no timeout is provided, it defaults to 60 seconds.', array('@preg_match' => 'http://php.net/preg_match')),
     '#default_value' => variable_get('amazons3_presigned_urls', ''),
     '#rows' => 10,
   );
@@ -194,9 +160,6 @@ function amazons3_admin_validate($form, &$form_state) {
   }
   else if(!class_exists('AmazonS3')) {
     form_set_error('amazons3_bucket', t('Cannot load AmazonS3 class. Please check the awssdk is installed correctly'));
-  }
-  else if(!class_exists('AmazonCloudFront')) {
-    form_set_error('amazons3_bucket', t('Cannot load AmazonCloudFront class. Please check the awssdk is installed correctly'));
   }
   else {
     try {
@@ -242,3 +205,4 @@ function amazons3_clear_cache_submit($form, &$form_state) {
   db_query('TRUNCATE TABLE {amazons3_file}');
   drupal_set_message(t('Cache cleared.'));
 }
+
