@@ -243,7 +243,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
     $response = ($info['presigned_url']) ? $info['response'] : array();
 
     if ($info['presigned_url'] && variable_get('amazons3_presigned_url_type', 's3') == 'cf') {
-      $url = $this->getCf()->get_private_object_url(variable_get('amazons3_domain', ''), $local_path, $timeout);
+      $url = $this->getCf()->get_private_object_url(variable_get('amazons3_domain', ''), $local_path, $timeout, array('Secure' => ($info['download_type'] == 'https')));
     }
     elseif (($info['presigned_url'] && variable_get('amazons3_presigned_url_type', 's3') == 's3')
         || $info['download_type'] != 'http'
