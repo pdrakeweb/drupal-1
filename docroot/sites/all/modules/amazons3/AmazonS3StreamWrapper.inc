@@ -20,6 +20,11 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
   protected $s3 = null;
 
   /**
+   * @var AmazonCF connection object
+   */
+  protected $cf = null;
+
+  /**
    * @var string S3 bucket name
    */
   protected $bucket;
@@ -236,12 +241,19 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
     $timeout = ($info['presigned_url']) ? time() + $info['presigned_url_timeout'] : 0;
     $torrent = ($info['download_type'] == 'torrent') ? TRUE : FALSE;
     $response = ($info['presigned_url']) ? $info['response'] : array();
-    if ($info['presigned_url'] || $info['download_type'] != 'http' || !empty($info['response'])) {
+
+    if ($info['presigned_url'] && variable_get('amazons3_presigned_url_type', 's3') == 'cf') {
+      $url = $this->getCf()->get_private_object_url(variable_get('amazons3_domain', ''), $local_path, $timeout);
+    }
+    elseif (($info['presigned_url'] && variable_get('amazons3_presigned_url_type', 's3') == 's3')
+        || $info['download_type'] != 'http'
+        || !empty($info['response'])) {
       $url = $this->getS3()->get_object_url($this->bucket, $local_path, $timeout, array('torrent' => $torrent, 'response' => $response));
-      return $url;
+    }
+    else {
+      $url = $this->domain . '/' . $local_path;
     }
 
-    $url = $this->domain . '/' . $local_path;
     return $url;
   }
 
@@ -891,7 +903,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       $uri = $this->uri;
     }
 
-    $path = preg_replace('/^(.*)\:(\/\/|$)/', '', $uri);
+    $path  = str_replace('s3://', '', $uri);
     $path = trim($path, '/');
     return $path;
   }
@@ -949,6 +961,32 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
       }
     }
     return $this->s3;
+  }
+
+  /**
+   * Get the CF connection object
+   *
+   * @return AmazonCloudFront
+   *   CloudFront connection object.
+   *
+   * @see http://docs.amazonwebservices.com/AWSSDKforPHP/latest/#i=AmazonCloudFront
+   */
+  protected function getCf() {
+    if(!libraries_load('awssdk')) {
+      drupal_set_message('Unable to load the AWS SDK. Please check you have installed the library correctly and configured your CloudFront settings.'. 'error');
+    }
+    if($this->cf == null) {
+      try {
+        $this->cf = new AmazonCloudFront();
+      }
+      catch(RequestCore_Exception $e){
+        drupal_set_message('There was a problem connecting to CF', 'error');
+      }
+      catch(Exception $e) {
+        drupal_set_message('There was a problem using CF: ' . $e->getMessage(), 'error');
+      }
+    }
+    return $this->cf;
   }
 
   /**
@@ -1041,8 +1079,7 @@ class AmazonS3StreamWrapper implements DrupalStreamWrapperInterface {
    *    An array if the $uri exists, otherwise FALSE.
    */
   protected function _amazons3_get_object($uri, $cache = TRUE) {
-    if (($uri == 's3://' || $uri == 's3:') ||
-        (variable_get('amazons3_public', FALSE) && $uri == 'public://')) {
+    if ($uri == 's3://' || $uri == 's3:') {
       $metadata = $this->_amazons3_format_response('/', array(), TRUE);
       return $metadata;
     }
