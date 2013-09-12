@@ -2488,6 +2488,9 @@ function drupal_valid_test_ua() {
       $test_prefix = $prefix;
       return $test_prefix;
     }
+    else {
+      watchdog('simpletest', 'Invalid test UA (timediff: '.$time_diff.', hmac match: '.($hmac == drupal_hmac_base64($check_string, _drupal_test_ua_key()) ? 'true' : 'false').')');
+    }
   }
 
   $test_prefix = FALSE;
