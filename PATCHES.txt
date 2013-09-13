@@ -1,5 +1,4 @@
 The following patches have been applied to this project:
-- http://drupal.org/files/670454-14.patch
 - http://drupal.org/files/1943282-d7.patch
 - http://drupal.org/files/870772-ua-hashmac-clusters-12.patch
 
