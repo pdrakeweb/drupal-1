@@ -2492,6 +2492,9 @@ function drupal_valid_test_ua() {
       watchdog('simpletest', 'Invalid test UA (timediff: '.$time_diff.', hmac match: '.($hmac == drupal_hmac_base64($check_string, _drupal_test_ua_key()) ? 'true' : 'false').')');
     }
   }
+  else {
+    watchdog('simpletest', 'Non-test UA (' . $_SERVER['HTTP_USER_AGENT'] . ')');
+  }
 
   $test_prefix = FALSE;
   return $test_prefix;
